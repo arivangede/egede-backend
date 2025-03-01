@@ -1,0 +1,35 @@
+version: "3.9"
+services:
+  gede-api:
+    container_name: gede-api
+    build: .
+    restart: always
+    ports:
+      - "3001:3000"
+    networks:
+      - jangkartech-network
+    environment:
+      - JWT_SECRET=secret
+      - DB_CONN_STRING=postgresql://gede:secret@gede-db:5432/gede
+
+  gede-db:
+    container_name: gede-db
+    image: postgres:15
+    restart: always
+    environment:
+      - POSTGRES_USER=gede
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=gede
+    ports:
+      - "5431:5432"
+    networks:
+      - jangkartech-network
+    volumes:
+      - gede-db:/var/lib/postgresql/data
+
+volumes:
+  gede-db:
+
+networks:
+  jangkartech-network:
+    external: true

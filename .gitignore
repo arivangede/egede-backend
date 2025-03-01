@@ -1,0 +1,12 @@
+# Ignore Node.js modules
+node_modules/
+
+# Keep environment variables out of version control
+.env
+
+# Ignore static files (if needed)
+static/
+
+# Ignore macOS system files
+.DS_Store
+
