@@ -151,14 +151,7 @@ const ROUTES = [
     uri: "/logo-desa",
     path: "./routes/v1.0/logo_desa/routes",
   },
-  {
-    uri: "/perangkat-pengguna",
-    path: "./routes/v1.0/perangkat_pengguna/routes",
-  },
-  {
-    uri: "/notifikasi",
-    path: "./routes/v1.0/notifikasi/routes",
-  },
+  
 ];
 
 module.exports = { ROUTES };

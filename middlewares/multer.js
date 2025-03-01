@@ -1,5 +1,72 @@
-const multer = require("multer");
-const fs = require("fs");
+const multer = require('multer');
+const fs = require('fs');
+
+// Storage configuration for both KTP and Ijazah
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    let directory;
+
+    // Tentukan direktori berdasarkan jenis file
+    if (file.fieldname === 'foto_kk') {
+      directory = 'static/penduduk/foto_kk/';
+    } else if (file.fieldname === 'foto_ijazah') {
+      directory = 'static/penduduk/foto_ijazah/';
+    }
+
+    // Periksa apakah direktori sudah ada, jika tidak, buat direktori
+    if (!fs.existsSync(directory)) {
+      fs.mkdirSync(directory, { recursive: true });
+      console.log(`Directory ${directory} created.`);
+    } else {
+      console.log(`Directory ${directory} already exists.`);
+    }
+    cb(null, directory);
+  },
+  filename: (req, file, cb) => {
+    // Mendapatkan objek tanggal saat ini dalam UTC+8
+    const currentUTCDate = new Date();
+    currentUTCDate.setUTCHours(currentUTCDate.getUTCHours() + 8);
+
+    // Mengonversi tanggal ke string tanpa spasi
+    const timestamp = currentUTCDate
+      .toISOString()
+      .replace(/-/g, "")
+      .replace(/:/g, "")
+      .replace(/\..+/, "");
+
+    const originalname = file.originalname;
+    const filename = `${timestamp}-${originalname}`;
+    const filepath = (file.fieldname === 'foto_kk' ? 'static/penduduk/foto_kk/' : 'static/penduduk/foto_ijazah/') + filename;
+
+    // Simpan informasi file yang diupload ke dalam request
+    if (file.fieldname === 'foto_kk') {
+      req.uploadedFileKTP = {
+        filename: filename,
+        filepath: filepath,
+      };
+    } else if (file.fieldname === 'foto_ijazah') {
+      req.uploadedFileIjazah = {
+        filename: filename,
+        filepath: filepath,
+      };
+    }
+
+    console.log(`Generated filename for ${file.fieldname}: ${filename}`);
+    cb(null, filename);
+  },
+});
+
+// Middleware untuk mengupload foto KTP dan Ijazah
+const uploadIjazahKk = multer({
+  storage: storage,
+  limits: {
+    fileSize: 10 * 1000 * 1000, // 3mb
+  },
+}).fields([
+  { name: 'foto_kk', maxCount: 1 },
+  { name: 'foto_ijazah', maxCount: 1 }
+]);
+
 
 const storageBerita = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -89,6 +156,9 @@ const storagePhotoKTP = multer.diskStorage({
     // Periksa apakah direktori sudah ada, jika tidak, buat direktori
     if (!fs.existsSync(directory)) {
       fs.mkdirSync(directory, { recursive: true });
+      console.log(`Directory ${directory} created.`);
+    } else {
+      console.log(`Directory ${directory} already exists.`);
     }
     cb(null, directory);
   },
@@ -108,12 +178,13 @@ const storagePhotoKTP = multer.diskStorage({
     const filename = `${timestamp}-${originalname}`;
     const filepath = "static/penduduk/foto_ktp/" + filename;
 
-    req.uploadedFile = {
+    req.uploadedFileKTP = {
       filename: filename,
       filepath: filepath,
     };
 
-    cb(null, `${filename}`);
+    console.log(`Generated filename for KTP: ${filename}`);
+    cb(null, filename);
   },
 });
 
@@ -171,6 +242,9 @@ const storagePhotoIjazah = multer.diskStorage({
     // Periksa apakah direktori sudah ada, jika tidak, buat direktori
     if (!fs.existsSync(directory)) {
       fs.mkdirSync(directory, { recursive: true });
+      console.log(`Directory ${directory} created.`);
+    } else {
+      console.log(`Directory ${directory} already exists.`);
     }
     cb(null, directory);
   },
@@ -190,14 +264,16 @@ const storagePhotoIjazah = multer.diskStorage({
     const filename = `${timestamp}-${originalname}`;
     const filepath = "static/penduduk/foto_ijazah/" + filename;
 
-    req.uploadedFile = {
+    req.uploadedFileIjazah = {
       filename: filename,
       filepath: filepath,
     };
 
-    cb(null, `${filename}`);
+    console.log(`Generated filename for Ijazah: ${filename}`);
+    cb(null, filename);
   },
 });
+
 
 const uploadPhotoIjazah = multer({
   storage: storagePhotoIjazah,
@@ -1319,6 +1395,7 @@ const handleMulterError = (err, req, res, next) => {
 };
 
 module.exports = {
+  uploadIjazahKk,
   uploadBerita,
   uploadPengumuman,
   uploadSejarahDesa,

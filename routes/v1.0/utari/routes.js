@@ -9,7 +9,10 @@ router.get('/detail/by-user', auth, CTRL.utariDetailByUser)
 router.get('/detail', auth, CTRL.utariDetails)
 router.get('/detail/:id', auth, CTRL.utariDetailById)
 router.get('/filter', auth, CTRL.utariFilter)
-router.post('/create-datapenduduk', [auth, multer.uploadPhotoKTP.single("foto_ktp")], CTRL.utariDataPenduduk)
+
+// router.post('/create-datapenduduk', [auth, multer.uploadPhotoKTP.single("foto_ktp")], CTRL.utariDataPenduduk)
+router.post('/create-datapenduduk', [auth, multer.uploadIjazahKk], CTRL.utariDataPenduduk);
+
 router.patch('/update-datapenduduk/:id', [auth, multer.uploadPhotoKTP.single("foto_ktp")], CTRL.updateUtariDataPenduduk)
 router.post('/create-datakeluarga', [auth, multer.uploadPhotoKK.single("foto_kk")], CTRL.utariDataKeluarga)
 router.patch('/update-datakeluarga/:id', [auth, multer.uploadPhotoKK.single("foto_kk")], CTRL.updateUtariDataKeluarga)
@@ -20,5 +23,6 @@ router.patch('/update-fotopenduduk/:id', [auth, multer.uploadPhotoPenduduk.singl
 router.patch('/dilihat/:id', auth, CTRL.dilihat)
 router.patch('/status-perbaikan/:id', auth, CTRL.statusPerbaikan)
 router.patch('/status-disetujui/:id', auth, CTRL.statusDiterima)
+router.patch('/status-ditolak/:id', auth, CTRL.statusDitolak)
 
 module.exports = router;

@@ -1,243 +1,227 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client-js"
-  previewFeatures = ["multischema"]
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  schemas = ["app_private", "app_public"]
+  schemas  = ["app_private", "app_public"]
 }
 
-model Peran{
-  id Int @id @default(autoincrement())
+model Peran {
+  id         Int            @id @default(autoincrement())
   nama_peran String
-  cts DateTime @default(now())
-  uts DateTime @updatedAt
-  pengguna PenggunaUmum[]
+  cts        DateTime       @default(now())
+  uts        DateTime       @updatedAt
+  pengguna   PenggunaUmum[]
 
   @@map("peran")
   @@schema("app_public")
 }
 
-model Penduduk{
-  id String @id @default(cuid())
-  no_kk String
-  nama_lengkap String
-  nik String
-  jenis_kelamin String
-  tempat_lahir String
-  tanggal_lahir DateTime @db.Date
-  alamat String
-  fk_daerah_id Int
-  status_nikah String
-  shdk String?
-  agama String
-  suku_bangsa String
-  kewarganegaraan String
+model Penduduk {
+  id                  String           @id @default(cuid())
+  no_kk               String
+  nama_lengkap        String
+  nik                 String
+  jenis_kelamin       String
+  tempat_lahir        String
+  tanggal_lahir       DateTime         @db.Date
+  alamat              String
+  fk_daerah_id        Int
+  status_nikah        String
+  agama               String
+  suku_bangsa         String
+  kewarganegaraan     String
   pendidikan_terakhir String
-  pekerjaan String
-  golongan_darah String?
-  penghasilan Int
-  foto_penduduk Json?
-  foto_ktp Json?
-  foto_kk Json?
-  foto_ijazah Json?
-  cts DateTime @default(now())
-  uts DateTime @updatedAt
-  daerah Daerah @relation(fields: [fk_daerah_id], references: [id])
-  pengguna PenggunaPribadi?
-  layananPublik LayananPublik[]
+  pekerjaan           String
+  penghasilan         Int
+  cts                 DateTime         @default(now())
+  uts                 DateTime         @updatedAt
+  foto_ijazah         Json?
+  foto_kk             Json?
+  foto_ktp            Json?
+  foto_penduduk       Json?
+  golongan_darah      String?
+  shdk                String?
+  daerah              Daerah           @relation(fields: [fk_daerah_id], references: [id])
+  pengguna            PenggunaPribadi?
+  layananPublik       LayananPublik[]
 
   @@map("penduduk")
   @@schema("app_private")
 }
 
-model PenggunaPribadi{
-  id String @id @default(cuid())
-  fk_penduduk_id String @unique
-  kata_sandi String
-  kode_otp String?
-  pengguna PenggunaUmum?
-  penduduk Penduduk @relation(fields: [fk_penduduk_id], references: [id])
-  utari_diajukan Utari[] @relation("UtariDiajukan")
-  utari_diterima Utari[] @relation("UtariDiterima")
+model PenggunaPribadi {
+  id                      String          @id @default(cuid())
+  fk_penduduk_id          String          @unique
+  kata_sandi              String
+  kode_otp                String?
+  penduduk                Penduduk        @relation(fields: [fk_penduduk_id], references: [id])
   layanan_publik_diajukan LayananPublik[] @relation("LayananPublikDiajukan")
   layanan_publik_diterima LayananPublik[] @relation("LayananPublikDiterima")
+  pengguna                PenggunaUmum?
+  utari_diajukan          Utari[]         @relation("UtariDiajukan")
+  utari_diterima          Utari[]         @relation("UtariDiterima")
 
   @@map("pengguna")
   @@schema("app_private")
 }
 
-model PenggunaUmum{
-  id String @id 
+model PenggunaUmum {
+  id            String          @id
   nama_pengguna String
-  email String
-  no_hp String
-  flag_status Boolean @default(true)
-  fk_peran_id Int
-  cts DateTime @default(now())
-  uts DateTime @updatedAt
+  email         String
+  no_hp         String
+  flag_status   Boolean         @default(true)
+  fk_peran_id   Int
+  cts           DateTime        @default(now())
+  uts           DateTime        @updatedAt
+  bookmarks     BookmarkEnews[]
+  likes         LikeEnews[]
+  pengaduan     Pengaduan[]
+  peran         Peran           @relation(fields: [fk_peran_id], references: [id])
+  pengguna      PenggunaPribadi @relation(fields: [id], references: [id])
 
-  peran Peran @relation(fields: [fk_peran_id], references: [id])
-  pengguna PenggunaPribadi @relation(fields: [id], references: [id])
-  likes LikeEnews[]
-  bookmarks BookmarkEnews[]
-  pengaduan Pengaduan[]
-  
   @@map("pengguna")
   @@schema("app_public")
 }
 
-model Daerah{
-  id Int @id @default(autoincrement())
-  kota String
-  kecamatan String
-  desa String
-  dusun String
-  fk_gate_id String
-  gate Gate @relation(fields: [fk_gate_id], references: [id])
-  cts DateTime @default(now())
-  uts DateTime @updatedAt
-  penduduk Penduduk[]
-  pengaduan Pengaduan[]
+model Daerah {
+  id            Int             @id @default(autoincrement())
+  kota          String
+  kecamatan     String
+  desa          String
+  dusun         String
+  fk_gate_id    String
+  cts           DateTime        @default(now())
+  uts           DateTime        @updatedAt
+  penduduk      Penduduk[]
+  gate          Gate            @relation(fields: [fk_gate_id], references: [id])
   layananPublik LayananPublik[]
-  
+  pengaduan     Pengaduan[]
+
   @@map("daerah")
   @@schema("app_public")
 }
 
-model Enews{
-  id Int @id @default(autoincrement())
-  judul String
-  kategori String
-  deskripsi String
-  file Json[]
+model Enews {
+  id         Int             @id @default(autoincrement())
+  judul      String
+  kategori   String
+  deskripsi  String
+  file       Json[]
   fk_gate_id String
-  kode String @default(cuid())
-  cts DateTime @default(now())
-  uts DateTime @updatedAt
-
-  gate Gate @relation(fields: [fk_gate_id], references: [id])
-  likes LikeEnews[]
-  bookmarks BookmarkEnews[]
+  kode       String          @default(cuid())
+  cts        DateTime        @default(now())
+  uts        DateTime        @updatedAt
+  bookmarks  BookmarkEnews[]
+  gate       Gate            @relation(fields: [fk_gate_id], references: [id])
+  likes      LikeEnews[]
 
   @@map("enews")
   @@schema("app_public")
 }
 
-model Gate{
-  id String @id @default(cuid())
-  judul String
-  flag_status Boolean @default(true)
-  cts DateTime @default(now())
-  uts DateTime @updatedAt
-
-  daerah Daerah[]
-  enews Enews[]
-  regulasi Regulasi[]
-  keuangan Keuangan[]
-  konten_wisata KontenWisata[]
-  konten_budaya KontenBudaya[]
-  iklan Iklan?
-  pengaduan Pengaduan[]
-  layananPublik LayananPublik[]
-  ikm IKM[]
-  logo_desa LogoDesa[]
-
-  sejarah SejarahDesa?
-  wilayah_desa WilayahDesa?
-  visi_misi VisiMisi?
-  struktur_pemerintah_desa StrukturPemerintahDesa?
-  badan_permusyawaratan_desa BadanPermusyawaratanDesa?
+model Gate {
+  id                              String                         @id @default(cuid())
+  judul                           String
+  flag_status                     Boolean                        @default(true)
+  cts                             DateTime                       @default(now())
+  uts                             DateTime                       @updatedAt
+  badan_permusyawaratan_desa      BadanPermusyawaratanDesa?
+  daerah                          Daerah[]
+  enews                           Enews[]
+  iklan                           Iklan?
+  ikm                             IKM[]
+  karang_taruna                   KarangTaruna?
+  keuangan                        Keuangan[]
+  konten_budaya                   KontenBudaya[]
+  konten_wisata                   KontenWisata[]
+  layananPublik                   LayananPublik[]
   lembaga_pemberdayaan_masyarakat LembagaPemberdayaanMasyarakat?
-  karang_taruna KarangTaruna?
-
+  logo_desa                       LogoDesa[]
+  pengaduan                       Pengaduan[]
+  regulasi                        Regulasi[]
+  sejarah                         SejarahDesa?
+  struktur_pemerintah_desa        StrukturPemerintahDesa?
+  visi_misi                       VisiMisi?
+  wilayah_desa                    WilayahDesa?
 
   @@map("gate")
   @@schema("app_public")
 }
 
-model LikeEnews{
-  id Int @id @default(autoincrement())
-  fk_enews_id Int
+model LikeEnews {
+  id             Int          @id @default(autoincrement())
+  fk_enews_id    Int
   fk_pengguna_id String
-  cts DateTime @default(now())
-
-  enews Enews @relation(fields: [fk_enews_id], references: [id])
-  pengguna PenggunaUmum @relation(fields: [fk_pengguna_id], references: [id])
+  cts            DateTime     @default(now())
+  enews          Enews        @relation(fields: [fk_enews_id], references: [id])
+  pengguna       PenggunaUmum @relation(fields: [fk_pengguna_id], references: [id])
 
   @@map("likes_enews")
   @@schema("app_public")
 }
 
-model BookmarkEnews{
-  id Int @id @default(autoincrement())
-  fk_enews_id Int
+model BookmarkEnews {
+  id             Int          @id @default(autoincrement())
+  fk_enews_id    Int
   fk_pengguna_id String
-  cts DateTime @default(now())
-
-  enews Enews @relation(fields: [fk_enews_id], references: [id])
-  pengguna PenggunaUmum @relation(fields: [fk_pengguna_id], references: [id])
+  cts            DateTime     @default(now())
+  enews          Enews        @relation(fields: [fk_enews_id], references: [id])
+  pengguna       PenggunaUmum @relation(fields: [fk_pengguna_id], references: [id])
 
   @@map("bookmarks_enews")
   @@schema("app_public")
 }
 
-model Regulasi{
-  id Int @id @default(autoincrement())
-  kategori String
-  no_regulasi String
-  tahun String
-  penetapan DateTime @db.Date
+model Regulasi {
+  id           Int      @id @default(autoincrement())
+  kategori     String
+  no_regulasi  String
+  tahun        String
+  penetapan    DateTime @db.Date
   pengundangan DateTime @db.Date
-  tentang String
-  status String
-  keterangan Json?
-  dokumen Json
-  kode String @default(cuid())
-  fk_gate_id String
-  cts DateTime @default(now())
-  uts DateTime @updatedAt
-
-  gate Gate @relation(fields: [fk_gate_id],references: [id])
-  
+  tentang      String
+  status       String
+  keterangan   Json?
+  dokumen      Json
+  kode         String   @default(cuid())
+  fk_gate_id   String
+  cts          DateTime @default(now())
+  uts          DateTime @updatedAt
+  gate         Gate     @relation(fields: [fk_gate_id], references: [id])
 
   @@map("regulasi")
   @@schema("app_public")
 }
 
-model Keuangan{
-  id Int @id @default(autoincrement())
-  tahun String
-  pendapatan Json[]
-  belanja Json[]
-  pembiayaan Json[]
-  fk_gate_id String
-  updated_status Boolean @default(true)
-  status_pendapatan Boolean @default(true)
-  status_belanja Boolean @default(true)
-  status_pembiayaan Boolean @default(true)
-  cts DateTime @default(now())
-  uts DateTime @updatedAt
-
-  gate Gate @relation(fields: [fk_gate_id], references: [id])
+model Keuangan {
+  id                Int      @id @default(autoincrement())
+  tahun             String
+  fk_gate_id        String
+  cts               DateTime @default(now())
+  uts               DateTime @updatedAt
+  belanja           Json[]
+  pembiayaan        Json[]
+  pendapatan        Json[]
+  status_belanja    Boolean  @default(true)
+  status_pembiayaan Boolean  @default(true)
+  status_pendapatan Boolean  @default(true)
+  updated_status    Boolean  @default(true)
+  gate              Gate     @relation(fields: [fk_gate_id], references: [id])
 
   @@map("keuangan")
   @@schema("app_public")
 }
 
 model KategoriWisata {
-  id Int @id @default(autoincrement())
+  id            Int            @id @default(autoincrement())
   nama_kategori String
-  cts DateTime @default(now())
-  uts DateTime @updatedAt
+  cts           DateTime       @default(now())
+  uts           DateTime       @updatedAt
   konten_wisata KontenWisata[]
 
   @@map("kategori_wisata")
@@ -245,10 +229,10 @@ model KategoriWisata {
 }
 
 model KategoriBudaya {
-  id Int @id @default(autoincrement())
+  id            Int            @id @default(autoincrement())
   nama_kategori String
-  cts DateTime @default(now())
-  uts DateTime @updatedAt
+  cts           DateTime       @default(now())
+  uts           DateTime       @updatedAt
   konten_budaya KontenBudaya[]
 
   @@map("kategori_budaya")
@@ -256,365 +240,327 @@ model KategoriBudaya {
 }
 
 model KontenWisata {
-  id Int @id @default(autoincrement())
+  id                    Int            @id @default(autoincrement())
   fk_kategori_wisata_id Int
-  nama String
-  alamat String
-  link_gmaps String
-  deskripsi String
-  img Json[]
-  fk_gate_id String
-  cts DateTime @default(now())
-  uts DateTime @updatedAt
-
-  gate Gate @relation(fields: [fk_gate_id], references: [id])
-  kategori_wisata KategoriWisata @relation(fields: [fk_kategori_wisata_id], references: [id])
+  nama                  String
+  alamat                String
+  link_gmaps            String
+  deskripsi             String
+  img                   Json[]
+  fk_gate_id            String
+  cts                   DateTime       @default(now())
+  uts                   DateTime       @updatedAt
+  gate                  Gate           @relation(fields: [fk_gate_id], references: [id])
+  kategori_wisata       KategoriWisata @relation(fields: [fk_kategori_wisata_id], references: [id])
 
   @@map("konten_wisata")
   @@schema("app_public")
 }
 
 model KontenBudaya {
-  id Int @id @default(autoincrement())
+  id                    Int            @id @default(autoincrement())
   fk_kategori_budaya_id Int
-  nama String
-  alamat String
-  link_gmaps String
-  deskripsi String
-  img Json[]
-  fk_gate_id String
-  cts DateTime @default(now())
-  uts DateTime @updatedAt
-
-  gate Gate @relation(fields: [fk_gate_id], references: [id])
-  kategori_budaya KategoriBudaya @relation(fields: [fk_kategori_budaya_id], references: [id])
+  nama                  String
+  alamat                String
+  link_gmaps            String
+  deskripsi             String
+  img                   Json[]
+  fk_gate_id            String
+  cts                   DateTime       @default(now())
+  uts                   DateTime       @updatedAt
+  gate                  Gate           @relation(fields: [fk_gate_id], references: [id])
+  kategori_budaya       KategoriBudaya @relation(fields: [fk_kategori_budaya_id], references: [id])
 
   @@map("konten_budaya")
   @@schema("app_public")
 }
 
-model SejarahDesa{
-  id String @id
+model SejarahDesa {
+  id        String   @id
   deskripsi String
-  img Json
-  cts DateTime @default(now())
-  uts DateTime @updatedAt
+  img       Json
+  cts       DateTime @default(now())
+  uts       DateTime @updatedAt
+  gate      Gate     @relation(fields: [id], references: [id])
 
-  gate Gate @relation(fields: [id], references: [id])
-  
   @@map("sejarah_desa")
   @@schema("app_public")
 }
 
 model WilayahDesa {
-  id String @id
+  id        String   @id
   deskripsi String
-  img Json
-  tabel Json[]
-  cts DateTime @default(now())
-  uts DateTime @updatedAt
-
-  gate Gate @relation(fields: [id], references: [id])
+  img       Json
+  tabel     Json[]
+  cts       DateTime @default(now())
+  uts       DateTime @updatedAt
+  gate      Gate     @relation(fields: [id], references: [id])
 
   @@map("wilayah_desa")
   @@schema("app_public")
 }
 
 model VisiMisi {
-  id String @id
+  id        String   @id
   deskripsi Json
-  cts DateTime @default(now())
-  uts DateTime @updatedAt
-
-  gate Gate @relation(fields: [id], references: [id])
+  cts       DateTime @default(now())
+  uts       DateTime @updatedAt
+  gate      Gate     @relation(fields: [id], references: [id])
 
   @@map("visi_misi")
   @@schema("app_public")
 }
 
 model StrukturPemerintahDesa {
-  id String @id
-  img Json
+  id           String   @id
+  img          Json
   data_anggota Json[]
-  cts DateTime @default(now())
-  uts DateTime @updatedAt
-
-  gate Gate @relation(fields: [id], references: [id])
+  cts          DateTime @default(now())
+  uts          DateTime @updatedAt
+  gate         Gate     @relation(fields: [id], references: [id])
 
   @@map("struktur_pemerintah_desa")
   @@schema("app_public")
 }
 
 model BadanPermusyawaratanDesa {
-  id String @id
-  img Json
+  id           String   @id
+  img          Json
   data_anggota Json[]
-  cts DateTime @default(now())
-  uts DateTime @updatedAt
-
-  gate Gate @relation(fields: [id], references: [id])
+  cts          DateTime @default(now())
+  uts          DateTime @updatedAt
+  gate         Gate     @relation(fields: [id], references: [id])
 
   @@map("badan_permusyawaratan_desa")
   @@schema("app_public")
 }
 
 model LembagaPemberdayaanMasyarakat {
-  id String @id
-  img Json
+  id           String   @id
+  img          Json
   data_anggota Json[]
-  data_bidang Json[]
-  cts DateTime @default(now())
-  uts DateTime @updatedAt
-
-  gate Gate @relation(fields: [id], references: [id])
+  data_bidang  Json[]
+  cts          DateTime @default(now())
+  uts          DateTime @updatedAt
+  gate         Gate     @relation(fields: [id], references: [id])
 
   @@map("lembaga_pemberdayaan_masyarakat")
   @@schema("app_public")
 }
 
 model KarangTaruna {
-  id String @id
-  img Json
+  id           String   @id
+  img          Json
   data_anggota Json[]
-  data_bidang Json[]
-  cts DateTime @default(now())
-  uts DateTime @updatedAt
-
-  gate Gate @relation(fields: [id], references: [id])
+  data_bidang  Json[]
+  cts          DateTime @default(now())
+  uts          DateTime @updatedAt
+  gate         Gate     @relation(fields: [id], references: [id])
 
   @@map("karang_taruna")
   @@schema("app_public")
 }
 
 model Iklan {
-  id String @id
+  id       String   @id
   contents Json[]
-  cts DateTime @default(now())
-  uts DateTime @updatedAt
-
-  gate Gate @relation(fields: [id], references: [id])
+  cts      DateTime @default(now())
+  uts      DateTime @updatedAt
+  gate     Gate     @relation(fields: [id], references: [id])
 
   @@map("iklan")
   @@schema("app_public")
 }
 
-model Pengaduan{
-  id String @id @default(cuid())
-  fk_pengguna_id String
-  judul String
-  kategori String
-  deskripsi String
-  file Json
-  lokasi Json
-  status_riwayat Json[]
-  status_riwayat_terbaru String? @default("")
-  fk_daerah_id Int
-  fk_gate_id String
-  isVerificated Boolean @default(false)
-  cts DateTime @default(now())
-  uts DateTime @updatedAt
-
-  pengguna PenggunaUmum @relation(fields: [fk_pengguna_id] , references: [id])
-  gate Gate @relation(fields: [fk_gate_id],references: [id])
-  daerah Daerah @relation(fields: [fk_daerah_id],references: [id])
+model Pengaduan {
+  id                     String       @id @default(cuid())
+  fk_pengguna_id         String
+  judul                  String
+  kategori               String
+  deskripsi              String
+  file                   Json
+  lokasi                 Json
+  fk_daerah_id           Int
+  fk_gate_id             String
+  cts                    DateTime     @default(now())
+  uts                    DateTime     @updatedAt
+  isVerificated          Boolean      @default(false)
+  status_riwayat         Json[]
+  status_riwayat_terbaru String?      @default("")
+  daerah                 Daerah       @relation(fields: [fk_daerah_id], references: [id])
+  gate                   Gate         @relation(fields: [fk_gate_id], references: [id])
+  pengguna               PenggunaUmum @relation(fields: [fk_pengguna_id], references: [id])
 
   @@map("pengaduan")
   @@schema("app_public")
 }
 
-model KategoriUtari{
-  id Int @id @default(autoincrement())
+model KategoriUtari {
+  id            Int      @id @default(autoincrement())
   nama_kategori String
-  cts DateTime @default(now())
-  uts DateTime @updatedAt
-
-  utari Utari[]
+  cts           DateTime @default(now())
+  uts           DateTime @updatedAt
+  utari         Utari[]
 
   @@map("kategori_utari")
   @@schema("app_public")
 }
 
-model Utari{
-  id Int @id @default(autoincrement())
-  fk_kategori_utari_id Int
-  diajukan_oleh_id String
-  diterima_oleh_id String?
-  no_kk String?
-  nama_lengkap String?
-  nik String?
-  jenis_kelamin String?
-  tempat_lahir String?
-  tanggal_lahir DateTime? @db.Date
-  alamat String?
-  status_nikah String?
-  shdk String?
-  agama String?
-  suku_bangsa String?
-  kewarganegaraan String?
-  pendidikan_terakhir String?
-  pekerjaan String?
-  golongan_darah String?
-  penghasilan Int?
-  foto_penduduk Json?
-  foto_ktp Json?
-  foto_kk Json?
-  foto_ijazah Json?
-  status_riwayat Json[]
-  status_riwayat_terbaru String @default("")
-  dilihat Boolean @default(false)
-  cts DateTime @default(now())
-  uts DateTime @updatedAt
-
-  kategoriUtari KategoriUtari @relation(fields: [fk_kategori_utari_id], references: [id])
-  diajukan_oleh PenggunaPribadi @relation("UtariDiajukan", fields: [diajukan_oleh_id], references: [id])
-  diterima_oleh PenggunaPribadi? @relation("UtariDiterima", fields: [diterima_oleh_id], references: [id])
+model Utari {
+  id                     Int              @id @default(autoincrement())
+  fk_kategori_utari_id   Int
+  diajukan_oleh_id       String
+  diterima_oleh_id       String?
+  no_kk                  String?
+  nama_lengkap           String?
+  nik                    String?
+  jenis_kelamin          String?
+  tempat_lahir           String?
+  tanggal_lahir          DateTime?        @db.Date
+  alamat                 String?
+  status_nikah           String?
+  shdk                   String?
+  agama                  String?
+  suku_bangsa            String?
+  kewarganegaraan        String?
+  pendidikan_terakhir    String?
+  pekerjaan              String?
+  golongan_darah         String?
+  penghasilan            Int?
+  foto_penduduk          Json?
+  foto_ktp               Json?
+  foto_kk                Json?
+  foto_ijazah            Json?
+  status_riwayat         Json[]
+  status_riwayat_terbaru String           @default("")
+  dilihat                Boolean          @default(false)
+  cts                    DateTime         @default(now())
+  uts                    DateTime         @updatedAt
+  comment                String?
+  diajukan_oleh          PenggunaPribadi  @relation("UtariDiajukan", fields: [diajukan_oleh_id], references: [id])
+  diterima_oleh          PenggunaPribadi? @relation("UtariDiterima", fields: [diterima_oleh_id], references: [id])
+  kategoriUtari          KategoriUtari    @relation(fields: [fk_kategori_utari_id], references: [id])
 
   @@map("utari")
   @@schema("app_public")
 }
 
-model JenisLayananPublik{
-  id Int @id @default(autoincrement())
-  jenis String
-  cts DateTime @default(now())
-  uts DateTime @updatedAt
+model JenisLayananPublik {
+  id                    Int                     @id @default(autoincrement())
+  jenis                 String
+  cts                   DateTime                @default(now())
+  uts                   DateTime                @updatedAt
   kategoriLayananPublik KategoriLayananPublik[]
 
   @@map("jenis_layanan_publik")
   @@schema("app_public")
 }
 
-model KategoriLayananPublik{
-  id Int @id @default(autoincrement())
-  nama_kategori String
+model KategoriLayananPublik {
+  id                  Int                        @id @default(autoincrement())
+  nama_kategori       String
   fk_jenis_layanan_id Int
-  cts DateTime @default(now())
-  uts DateTime @updatedAt
-  jenis_layanan JenisLayananPublik @relation(fields: [fk_jenis_layanan_id], references: [id])
-  subKategori SubKategoriLayananPublik[]
-  layananPublik LayananPublik[]
-  
+  cts                 DateTime                   @default(now())
+  uts                 DateTime                   @updatedAt
+  jenis_layanan       JenisLayananPublik         @relation(fields: [fk_jenis_layanan_id], references: [id])
+  layananPublik       LayananPublik[]
+  subKategori         SubKategoriLayananPublik[]
+
   @@map("kategori_layanan_publik")
   @@schema("app_public")
 }
 
-model SubKategoriLayananPublik{
-  id Int @id @default(autoincrement())
+model SubKategoriLayananPublik {
+  id                Int                    @id @default(autoincrement())
   nama_sub_kategori String
-  fk_kategori_id Int
-  cts DateTime @default(now())
-  uts DateTime @updatedAt
-  kategori KategoriLayananPublik @relation(fields: [fk_kategori_id], references: [id])
-  dokumen DokumenLayananPublik[]
-  
+  fk_kategori_id    Int
+  cts               DateTime               @default(now())
+  uts               DateTime               @updatedAt
+  dokumen           DokumenLayananPublik[]
+  kategori          KategoriLayananPublik  @relation(fields: [fk_kategori_id], references: [id])
+
   @@map("sub_kategori_layanan_publik")
   @@schema("app_public")
 }
 
-model LayananPublik{
-  id Int @id @default(autoincrement())
+model LayananPublik {
+  id                            Int                   @id @default(autoincrement())
   fk_kategori_layanan_publik_id Int
-  diajukan_oleh_id String
-  fk_penduduk_id String
-  diterima_oleh_id String?
-  fk_gate_id String
-  fk_daerah_id Int
-  tanggal_surat DateTime? @db.Date
-  deskripsi String?
-  foto_ktp Json?
-  foto_kk Json?
-  foto_akta_nikah Json?
-  status_riwayat Json[]
-  status_riwayat_terbaru String @default("")
-  alasan String?
-  cts DateTime @default(now())
-  uts DateTime @updatedAt
-  kategori_layanan_publik KategoriLayananPublik @relation(fields: [fk_kategori_layanan_publik_id], references: [id])
-  diajukan_oleh PenggunaPribadi @relation("LayananPublikDiajukan", fields: [diajukan_oleh_id], references: [id])
-  penduduk Penduduk @relation(fields: [fk_penduduk_id], references: [id])
-  diterima_oleh PenggunaPribadi? @relation("LayananPublikDiterima", fields: [diterima_oleh_id], references: [id])
-  gate Gate @relation(fields: [fk_gate_id], references: [id])
-  daerah Daerah @relation(fields: [fk_daerah_id], references: [id])
+  diajukan_oleh_id              String
+  diterima_oleh_id              String?
+  fk_gate_id                    String
+  tanggal_surat                 DateTime?             @db.Date
+  foto_ktp                      Json?
+  foto_kk                       Json?
+  foto_akta_nikah               Json?
+  status_riwayat                Json[]
+  status_riwayat_terbaru        String                @default("")
+  cts                           DateTime              @default(now())
+  uts                           DateTime              @updatedAt
+  fk_daerah_id                  Int
+  fk_penduduk_id                String
+  deskripsi                     String?
+  diajukan_oleh                 PenggunaPribadi       @relation("LayananPublikDiajukan", fields: [diajukan_oleh_id], references: [id])
+  diterima_oleh                 PenggunaPribadi?      @relation("LayananPublikDiterima", fields: [diterima_oleh_id], references: [id])
+  daerah                        Daerah                @relation(fields: [fk_daerah_id], references: [id])
+  gate                          Gate                  @relation(fields: [fk_gate_id], references: [id])
+  kategori_layanan_publik       KategoriLayananPublik @relation(fields: [fk_kategori_layanan_publik_id], references: [id])
+  penduduk                      Penduduk              @relation(fields: [fk_penduduk_id], references: [id])
 
   @@map("layanan_publik")
   @@schema("app_public")
 }
 
-model DokumenLayananPublik{
-  id Int @id @default(autoincrement())
-  dokumen Json?
+model DokumenLayananPublik {
+  id                 Int                      @id @default(autoincrement())
+  dokumen            Json?
   fk_sub_kategori_id Int
-  cts DateTime @default(now())
-  uts DateTime @updatedAt
-  subKategori SubKategoriLayananPublik @relation(fields: [fk_sub_kategori_id], references: [id])
+  cts                DateTime                 @default(now())
+  uts                DateTime                 @updatedAt
+  subKategori        SubKategoriLayananPublik @relation(fields: [fk_sub_kategori_id], references: [id])
 
   @@map("dokumen_layanan_publik")
   @@schema("app_public")
 }
 
-model IKM{
-  id Int @id @default(autoincrement())
-  nik String
-  nama String
-  jenis_kelamin String
-  no_hp String
+model IKM {
+  id                  Int      @id @default(autoincrement())
+  jenis_layanan       String
+  u1                  Int
+  u2                  Int
+  u3                  Int
+  u4                  Int
+  u5                  Int
+  u6                  Int
+  u7                  Int
+  u8                  Int
+  u9                  Int
+  saran               String
+  cts                 DateTime @default(now())
+  uts                 DateTime @updatedAt
+  dusun               String
+  jenis_kelamin       String
+  nama                String
+  nik                 String
+  no_hp               String
+  pekerjaan           String
   pendidikan_terakhir String
-  pekerjaan String
-  jenis_layanan String
-  u1 Int
-  u2 Int
-  u3 Int
-  u4 Int
-  u5 Int
-  u6 Int
-  u7 Int
-  u8 Int
-  u9 Int
-  saran String
-  dusun String
-  fk_gate_id String
-  cts DateTime @default(now())
-  uts DateTime @updatedAt
-  gate Gate @relation(fields: [fk_gate_id], references: [id])
+  fk_gate_id          String
+  gate                Gate     @relation(fields: [fk_gate_id], references: [id])
 
   @@map("ikm")
   @@schema("app_public")
 }
 
 model LogoDesa {
-  id Int @id @default(autoincrement())
-  nama String
-  logo Json
+  id         Int      @id @default(autoincrement())
+  nama       String
+  logo       Json
+  cts        DateTime @default(now())
+  uts        DateTime @updatedAt
   fk_gate_id String
-  cts DateTime @default(now())
-  uts DateTime @updatedAt
-  gate Gate @relation(fields: [fk_gate_id], references: [id])
+  gate       Gate     @relation(fields: [fk_gate_id], references: [id])
 
   @@map("logo_desa")
-  @@schema("app_public")
-}
-
-model PerangkatPengguna {
-  id Int @id @default(autoincrement())
-  perangkat_id String
-  informasi_perangkat String
-  pengguna_id String
-  cts DateTime @default(now())
-  uts DateTime @updatedAt
-  
-  @@map("perangkat_pengguna")
-  @@schema("app_public")
-}
-
-model Notifikasi {
-  id Int @id @default(autoincrement())
-  judul String
-  deskripsi String
-  is_read Boolean
-  created_by String
-  cts DateTime @default(now())
-  uts DateTime @updatedAt
-  
-  @@map("notifikasi")
   @@schema("app_public")
 }
