@@ -1,7 +1,8 @@
+
 const router = require("express").Router();
 const CTRL = require("./controllers");
-const middlewares = require("../../../middlewares/verifyJwt");
 const authMiddlewares = require("../../../middlewares/verifyJwt");
+
 
 router.get("/", CTRL.get);
 router.get("/private/:id", authMiddlewares, CTRL.getById);

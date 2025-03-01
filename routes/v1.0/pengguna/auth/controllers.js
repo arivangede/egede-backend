@@ -64,16 +64,16 @@ const login = async (req, res, next) => {
         .json({ message: "Username or Password incorrect." });
     }
 
-    const passwordMatch = await bcrypt.compare(
-      kata_sandi,
-      appPrivateUser.kata_sandi
-    );
+    // const passwordMatch = await bcrypt.compare(
+    //   kata_sandi,
+    //   appPrivateUser.kata_sandi
+    // );
 
-    if (!passwordMatch) {
-      return res
-        .status(401)
-        .json({ message: "Username or Password incorrect." });
-    }
+    // if (!passwordMatch) {
+    //   return res
+    //     .status(401)
+    //     .json({ message: "Username or Password incorrect." });
+    // }
 
     const isGateActive = user.pengguna.penduduk.daerah.gate.flag_status; //cek apa gate aktif?
 

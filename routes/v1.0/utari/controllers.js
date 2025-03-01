@@ -176,30 +176,46 @@ const utariFilter = async (req, res, next) => {
 
 const utariDataPenduduk = async (req, res, next) => {
     try {
-        const data = req.body
-        const diajukanOleh = req.user.rnd
-        const { filename, path } = req.file
+        const data = req.body;
+        const diajukanOleh = req.user.rnd;
+
+        // Ambil file dari req.files
+        const uploadedFileKK = req.files && req.files['foto_kk'] ? req.files['foto_kk'][0] : null;
+        const uploadedFileIjazah = req.files && req.files['foto_ijazah'] ? req.files['foto_ijazah'][0] : null;
+
         const initialStatus = {
             status: "Menunggu",
             waktu: new Date().toISOString()
-        }
+        };
 
-        const fileData = {
-            filename: filename,
-            path: path.replace(/\\/g, '/')
-        }
+        // Prepare file data if files are uploaded
+        const fileDataKK = uploadedFileKK ? {
+            filename: uploadedFileKK.filename,
+            path: uploadedFileKK.path.replace(/\\/g, '/')
+        } : null;
 
-        const tanggalLahir = new Date(data.tanggal_lahir)
-        if (isNaN(tanggalLahir)) {
-            throw new Error("Tanggal lahir tidak valid")
-        }
+        const fileDataIjazah = uploadedFileIjazah ? {
+            filename: uploadedFileIjazah.filename,
+            path: uploadedFileIjazah.path.replace(/\\/g, '/')
+        } : null;
 
+        // Handle tanggal_lahir
+        let tanggalLahir = null;
+        if (data.tanggal_lahir) {
+            const parsedDate = new Date(data.tanggal_lahir);
+            if (!isNaN(parsedDate)) {
+                tanggalLahir = parsedDate;
+            } else {
+                return res.status(400).json({ error: "Tanggal lahir tidak valid" });
+            }
+        }
 
         await prisma.utari.create({
             data: {
                 fk_kategori_utari_id: parseInt(data.fk_kategori_utari_id),
                 diajukan_oleh_id: diajukanOleh,
                 nik: data.nik,
+                no_kk:data.no_kk,
                 nama_lengkap: data.nama_lengkap,
                 tempat_lahir: data.tempat_lahir,
                 tanggal_lahir: tanggalLahir,
@@ -211,18 +227,22 @@ const utariDataPenduduk = async (req, res, next) => {
                 suku_bangsa: data.suku_bangsa,
                 kewarganegaraan: data.kewarganegaraan,
                 golongan_darah: data.golongan_darah,
-                foto_ktp: fileData,
+                pendidikan_terakhir:data.pendidikan_terakhir,
+                penghasilan:parseInt(data.penghasilan),
+                foto_kk: fileDataKK,
+                foto_ijazah: fileDataIjazah,
                 status_riwayat: [initialStatus],
                 status_riwayat_terbaru: initialStatus.status
             }
-        })
+        });
 
-        res.status(200).json({ message: "Successfully." })
+        res.status(200).json({ message: "Successfully." });
     } catch (error) {
-        console.error("ERROR =>", error)
-        next(new ResponseError(500, "Internal server error"))
+        console.error("ERROR =>", error);
+        next(new ResponseError(500, "Internal server error"));
     }
-}
+};
+
 
 const updateUtariDataPenduduk = async (req, res, next) => {
     try {
@@ -237,6 +257,7 @@ const updateUtariDataPenduduk = async (req, res, next) => {
         }
 
         const updated = {}
+
         if (req.file) {
             if (utari.foto_ktp) {
                 fs.unlinkSync(utari.foto_ktp.path)
@@ -629,7 +650,7 @@ const statusDiterima = async (req, res, next) => {
         })
 
         const penggunaPribadi = await prisma.penggunaPribadi.findFirst({
-            where: { id: utari.dibuat_oleh_id },
+            where: { id: utari.diajukan_oleh_id },
             include: {
                 penduduk: true
             }
@@ -672,6 +693,45 @@ const statusDiterima = async (req, res, next) => {
     }
 }
 
+const statusDitolak = async (req,res,next) => {
+    try {
+        const id = parseInt(req.params.id)
+        const diterimaOleh = req.user.rnd
+        const waktu = new Date().toISOString()
+        const comment = req.body.comment
+
+        const utari = await prisma.utari.findFirst({
+            where: { id }
+        })
+
+        if (!utari) {
+            return res.status(404).json({ message: "Data is not found." })
+        }
+
+        utari.status_riwayat.push({
+            status: "Ditolak",
+            waktu: waktu
+        })
+
+        await prisma.utari.update({
+            where: { id },
+            data: {
+                diterima_oleh_id: diterimaOleh,
+                status_riwayat: utari.status_riwayat,
+                status_riwayat_terbaru: "Ditolak",
+                comment: comment,
+                uts: new Date()
+            }
+        })
+
+        res.status(200).json({ message: 'Successfully.' })
+
+    } catch (error) {
+        console.error("ERROR =>", error)
+        next(new ResponseError(500, "Internal server error"))
+    }
+}
+
 module.exports = {
     utari,
     utariById,
@@ -689,5 +749,6 @@ module.exports = {
     updateUtariFotoPenduduk,
     dilihat,
     statusPerbaikan,
-    statusDiterima
+    statusDiterima,
+    statusDitolak
 }

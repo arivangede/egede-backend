@@ -295,17 +295,26 @@ const activate = async (req, res, next) => {
   }
 };
 
+
 const update = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { nama_pengguna, email, no_hp, fk_peran_id } = req.body;
     let { kata_sandi } = req.body;
+    console.log("Request Body:", req.body);
+
+    console.log("Nama Pengguna:", nama_pengguna)
+    console.log("Email:", email)
+    console.log("No HP:", no_hp)
+
 
     const user = await prisma.penggunaUmum.findFirst({
       where: {
         id: id,
       },
     });
+
+    console.log("User:" , user)
 
     if (!user) {
       return res.status(400).json({
@@ -329,6 +338,7 @@ const update = async (req, res, next) => {
         });
       }
     }
+    console.log("nama_pengguna:", nama_pengguna)
 
     if (email && email !== user.email) {
       const existingEmailUser = await prisma.penggunaUmum.findFirst({
@@ -394,6 +404,7 @@ const update = async (req, res, next) => {
         },
       });
     }
+    console.log("public:", public)
 
     await prisma.penggunaUmum.update({
       where: {
